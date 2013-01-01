@@ -1,6 +1,4 @@
-use 5.006;
 use strict;
-use warnings FATAL => 'all';
 use ExtUtils::MakeMaker;
 
 WriteMakefile(
@@ -18,8 +16,10 @@ WriteMakefile(
         'Test::More' => 0,
     },
     PREREQ_PM => {
-        #'ABC'              => 1.6,
-        #'Foo::Bar::Module' => 5.0401,
+	DateTime => 0,
+	Moose => 2,
+	'Calendar::List' => 0.26,
+	'Date::Holidays' => 0.15,
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'Calendar-Model-*' },
