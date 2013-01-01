@@ -85,15 +85,27 @@ has 'previous_month' => (
     init_arg => undef,
 );
 
+
 has 'year' => (
     is  => 'ro',
     isa => 'Str',
 );
 
-has 'start_date' => (
+has 'next_year' => (
     is  => 'ro',
-    isa => 'DateTime'
+    isa => 'Str',
 );
+
+has 'previous_year' => (
+    is  => 'ro',
+    isa => 'Str',
+    init_arg => undef,
+);
+
+# has 'start_date' => (
+#     is  => 'ro',
+#     isa => 'DateTime'
+# );
 
 has 'selected_date' => (
     is  => 'ro',
@@ -158,6 +170,9 @@ sub BUILD {
     }
 
     $self->{first_entry_day} = $first_entry_day;
+
+    # get next/prev month and year
+    
 
     return;
 }
