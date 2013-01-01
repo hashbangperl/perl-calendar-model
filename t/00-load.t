@@ -2,9 +2,7 @@
 
 use strict;
 use warnings FATAL => 'all';
-use Test::More;
-
-plan tests => 2;
+use Test::More tests => 2;
 
 BEGIN {
     use_ok( 'Calendar::Model' ) || print "Bail out!\n";

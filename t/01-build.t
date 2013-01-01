@@ -1,7 +1,7 @@
 #!perl
 
 use strict;
-use Test::More qw(done_testing);
+use Test::More;
 
 use Data::Dumper;
 use DateTime;
@@ -13,4 +13,4 @@ warn Dumper($cal->columns);
 
 is($cal->first_entry_day->dmy,'30-12-2012');
 
-done_testing;
+done_testing();

@@ -114,7 +114,7 @@ has 'first_entry_day' => (
 
 Class constructor method, returns a Calendar::Model object based on the arguments :
 
-=over4
+=over 4
 
 =item selected_date - optional, defaults to current local/system date, otherwise provide a DateTime object
 
@@ -122,6 +122,10 @@ Class constructor method, returns a Calendar::Model object based on the argument
  otherwise provide number of days before selected date to show at start.
 
 =back
+
+=head2 BUILD
+
+Std Moose initialisation hook called by constructor method
 
 =cut
 
