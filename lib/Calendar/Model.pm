@@ -77,6 +77,7 @@ has 'month' => (
 has 'next_month' => (
     is  => 'ro',
     isa => 'Str',
+    init_arg => undef,
 );
 
 has 'previous_month' => (
@@ -84,7 +85,6 @@ has 'previous_month' => (
     isa => 'Str',
     init_arg => undef,
 );
-
 
 has 'year' => (
     is  => 'ro',
@@ -94,6 +94,7 @@ has 'year' => (
 has 'next_year' => (
     is  => 'ro',
     isa => 'Str',
+    init_arg => undef,
 );
 
 has 'previous_year' => (
@@ -168,15 +169,25 @@ sub BUILD {
     unless ($first_month_day->wday == 7) {
         $first_entry_day->subtract(days => $first_month_day->wday);
     }
-
     $self->{first_entry_day} = $first_entry_day;
 
     # get next/prev month and year
-    
+    $self->{previous_month} = ($self->month == 1) ? 12 : $self->month - 1;
+    $self->{next_month} = ($self->month == 12) ? 1 : $self->month + 1;
+    $self->{previous_year} = ($self->{previous_month} == 12) ? $self->year - 1 : $self->year;
+    $self->{next_year} = ($self->{next_month} == 1)? $self->year + 1 : $self->year;
 
     return;
 }
 
+sub weeks {
+    my $self = shift;
+
+    unless ($self->rows) {
+        # build rows of days
+    }
+    # natatime is iterator accessor for ArrayRef accessor in moose - built in, would be nice to wrap it
+}
 
 
 ###
