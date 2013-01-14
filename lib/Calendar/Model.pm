@@ -43,9 +43,12 @@ use DateTime;
 use DateTime::Duration;
 use Calendar::List;
 
+use Calendar::Model::Day;
+
 use Data::Dumper;
 
 use Moose;
+with 'MooseX::Role::Pluggable';
 
 =head1 ATTRIBUTES
 
@@ -119,8 +122,6 @@ has 'first_entry_day' => (
     init_arg => undef,
 );
 
-
-
 =head1 METHODS
 
 =head2 new
@@ -177,6 +178,11 @@ sub BUILD {
     $self->{previous_year} = ($self->{previous_month} == 12) ? $self->year - 1 : $self->year;
     $self->{next_year} = ($self->{next_month} == 1)? $self->year + 1 : $self->year;
 
+    my $day_plugins = [];
+    foreach my $plugin ( @{ $self->plugin_list } ) {
+        $plugin->init() if ( $plugin->can( 'init' ));
+    }
+
     return;
 }
 
@@ -185,8 +191,22 @@ sub weeks {
 
     unless ($self->rows) {
         # build rows of days
+        my $day_plugins = [];
+        foreach my $plugin ( @{ $self->plugin_list } ) {
+            push  if ( $plugin->can( 'init' ));
+        }
+
+        foreach (1..5) {
+            my $dow = 1;
+            push (
+                @{$self->{rows}},
+                map { Calendar::Model::Day->new({ dmy => $_, day_of_week => $dow++ }) }
+                calendar_list('DD-MM-YYYY',{start => $self->{first_entry_day}->dmy, "options" => 7})
+            );
+        }
     }
     # natatime is iterator accessor for ArrayRef accessor in moose - built in, would be nice to wrap it
+    return $self->rows;
 }
 
 

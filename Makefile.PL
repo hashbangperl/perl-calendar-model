@@ -18,6 +18,7 @@ WriteMakefile(
     PREREQ_PM => {
 	DateTime => 0,
 	Moose => 2,
+	'MooseX::Role::Pluggable' => 0.02,
 	'Calendar::List' => 0.26,
 	'Date::Holidays' => 0.15,
     },

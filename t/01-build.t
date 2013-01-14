@@ -25,4 +25,7 @@ is($cal->next_month, 2);
 
 is($cal->next_year, 2013);
 
+warn Dumper $cal->weeks;
+
 done_testing();
+
