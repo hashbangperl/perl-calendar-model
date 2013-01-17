@@ -24,4 +24,12 @@ WriteMakefile(
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'Calendar-Model-*' },
+   META_MERGE => {
+     resources => {
+       repository => 'https://github.com/hashbangperl/perl-calendar-model',
+    },
+   },
+   ($ExtUtils::MakeMaker::VERSION >= 6.3002 ? ('LICENSE'  => 'perl', ) : ()),
+
+
 );

@@ -36,6 +36,8 @@ Class constructor method, returns a Calendar::Model::Day object based on the arg
 
 =item day_of_week - day of week (1 (Monday) to 7)
 
+=item dow_name - day of week name (Monday, etc)
+
 =item dd - day of month
 
 =item mm - Month number ( 0-12 )
@@ -78,6 +80,12 @@ has 'day_of_week' => (
     required => 1,
 );
 
+has 'dow_name' => (
+    is  => 'ro',
+    isa => 'Str',
+    required => 1,
+);
+
 has 'is_selected_month' => (
     is => 'ro',
     isa => 'Bool',
@@ -93,9 +101,10 @@ sub BUILD {
     my $self = shift;
     my $args = shift;
 
+    # split dmy into dd mm yyyy,
     @{$self}{qw/dd mm yyyy/} = split(/\-/,$self->dmy);
 
-    # split dmy into dd mm yyyy, check if provided selected month and set flag appropriately
+    # check if provided selected month and set flag appropriately
 
     # do working day check
 

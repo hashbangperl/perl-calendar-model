@@ -3,7 +3,7 @@ use strict;
 
 =head1 NAME
 
-Calendar::Model - Simple class modelling Month/Week Calendars
+Calendar::Model - Simple class modelling Calendars
 
 =head1 VERSION
 
@@ -29,16 +29,28 @@ our $VERSION = '0.01';
 
     my $selected_date = $cal->selected_date
 
-    my $month = $cal->month;
+    my $month = $cal->month; # 3
 
-    my $year  = $cal->year;
+    my $year  = $cal->year; # 1992
 
-    my $next_month = $cal->next_month;
+    my $next_month = $cal->next_month; # 4
 
-    my $prev_month = $cal->previous_month;
+    my $prev_month = $cal->previous_month; # 2
+
+    my $month_name = $cal->month_name; # March
+
+    my $next_month_name = $cal->month_name('next'); # April
+
+=head1 DESCRIPTION
+
+A simple Model layer providing Classes representing A Calendar containing rows and days
 
 =cut
 
+use POSIX qw(locale_h);
+use I18N::Langinfo qw(langinfo DAY_1 DAY_2 DAY_3 DAY_4 DAY_5 DAY_6 DAY_7
+                      MON_1 MON_2 MON_3 MON_4 MON_5 MON_6
+                      MON_7 MON_8 MON_9 MON_10 MON_11 MON_12);
 use DateTime;
 use DateTime::Duration;
 use Calendar::List;
@@ -62,7 +74,6 @@ has 'columns' => (
     is  => 'ro',
     isa => 'ArrayRef',
     init_arg => undef,
-    default => sub { [qw/Sunday Monday Tuesday Wednesday Thursday Friday Saturday/] },
 );
 
 has 'rows'  => (
@@ -73,8 +84,14 @@ has 'rows'  => (
 
 has 'month' => (
     is  => 'ro',
-    isa => 'Str',
+    isa => 'Int',
     init_arg => undef,
+);
+
+has 'LANG' => (
+    is => 'ro',
+    isa => 'Str',
+    default => 'EN-GB',
 );
 
 has 'next_month' => (
@@ -91,7 +108,7 @@ has 'previous_month' => (
 
 has 'year' => (
     is  => 'ro',
-    isa => 'Str',
+    isa => 'Int',
 );
 
 has 'next_year' => (
@@ -178,13 +195,21 @@ sub BUILD {
     $self->{previous_year} = ($self->{previous_month} == 12) ? $self->year - 1 : $self->year;
     $self->{next_year} = ($self->{next_month} == 1)? $self->year + 1 : $self->year;
 
-    my $day_plugins = [];
-    foreach my $plugin ( @{ $self->plugin_list } ) {
-        $plugin->init() if ( $plugin->can( 'init' ));
-    }
+    $self->_translate_days_months;
+
+#     my $day_plugins = [];
+#     foreach my $plugin ( @{ $self->plugin_list } ) {
+#         $plugin->init() if ( $plugin->can( 'init' ));
+#     }
 
     return;
 }
+
+=head2 weeks
+
+Object method (lazily) builds and returns rows of Calendar::Model::Day objects, 1 for each week.
+
+=cut
 
 sub weeks {
     my $self = shift;
@@ -192,16 +217,16 @@ sub weeks {
     unless ($self->rows) {
         # build rows of days
         my $day_plugins = [];
-        foreach my $plugin ( @{ $self->plugin_list } ) {
-            push  if ( $plugin->can( 'init' ));
-        }
+#         foreach my $plugin ( @{ $self->plugin_list } ) {
+#             push if ( $plugin->can( 'init' ));
+#         }
 
         foreach (1..5) {
             my $dow = 1;
             push (
                 @{$self->{rows}},
-                map { Calendar::Model::Day->new({ dmy => $_, day_of_week => $dow++ }) }
-                calendar_list('DD-MM-YYYY',{start => $self->{first_entry_day}->dmy, "options" => 7})
+                [ map { Calendar::Model::Day->new({ dmy => $_, dow_name => $self->{_days_of_week}[$dow], day_of_week => $dow++, }) }
+                calendar_list('DD-MM-YYYY',{start => $self->{first_entry_day}->dmy, "options" => 7} ) ]
             );
         }
     }
@@ -209,8 +234,55 @@ sub weeks {
     return $self->rows;
 }
 
+=head2 month_name
+
+Object method, returns name of current/selected month or takes a string indicating whether to show 'next' or 'previous' month.
+
+    my $month_name = $cal->month_name; # March
+
+    my $next_month_name = $cal->month_name('next'); # April
+
+
+=cut
+
+sub month_name {
+    my ($self, $delta) = @_;
+    my $monthname;
+    if ($delta) {
+        if ($delta eq 'next') {
+            $monthname = $self->{_months_of_year}[$self->next_month];
+        } elsif ($delta eq 'previous') {
+            $monthname = $self->{_months_of_year}[$self->previous_month];
+        } else {
+            die 'unrecognised month delta - needs to be undef, next or previous';
+        }
+    } else {
+        $monthname = $self->{_months_of_year}[$self->month];
+    }
+    return $monthname;
+}
 
 ###
+
+sub _translate_days_months {
+    my $self = shift;
+
+    # query and save the old locale
+    my $old_locale = POSIX::setlocale( &POSIX::LC_ALL);
+
+    # set local from obj language
+    POSIX::setlocale( &POSIX::LC_ALL,$self->{LANG});
+    $self->{_days_of_week} = [ undef, map { langinfo($_) } (DAY_1, DAY_2, DAY_3, DAY_4, DAY_5, DAY_6, DAY_7) ];
+    $self->{_months_of_year} = [ undef, map { langinfo($_) } (MON_1, MON_2, MON_3, MON_4, MON_5, MON_6,
+                                                              MON_7, MON_8, MON_9, MON_10, MON_11, MON_12) ];
+
+    $self->{columns} = [ @{$self->{_days_of_week}}[1,2,3,4,5,6,7] ];
+
+    # restore the old locale
+    setlocale(LC_CTYPE, $old_locale);
+    return;
+}
+
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
