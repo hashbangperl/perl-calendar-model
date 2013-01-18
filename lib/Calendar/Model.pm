@@ -61,6 +61,8 @@ use Data::Dumper;
 
 use Moose;
 with 'MooseX::Role::Pluggable';
+use namespace::autoclean;
+
 
 =head1 ATTRIBUTES
 
@@ -74,18 +76,20 @@ has 'columns' => (
     is  => 'ro',
     isa => 'ArrayRef',
     init_arg => undef,
+    writer => '_columns'
 );
 
 has 'rows'  => (
     is  => 'ro',
     isa => 'ArrayRef',
     init_arg => undef,
+    writer => '_rows',
 );
 
 has 'month' => (
     is  => 'ro',
     isa => 'Int',
-    init_arg => undef,
+    writer => '_month',
 );
 
 has 'LANG' => (
@@ -98,29 +102,34 @@ has 'next_month' => (
     is  => 'ro',
     isa => 'Str',
     init_arg => undef,
+    writer => '_next_month',
 );
 
 has 'previous_month' => (
     is  => 'ro',
     isa => 'Str',
     init_arg => undef,
+    writer => '_previous_month',
 );
 
 has 'year' => (
     is  => 'ro',
     isa => 'Int',
+    writer => '_year',
 );
 
 has 'next_year' => (
     is  => 'ro',
     isa => 'Str',
     init_arg => undef,
+    writer => '_next_year',
 );
 
 has 'previous_year' => (
     is  => 'ro',
     isa => 'Str',
     init_arg => undef,
+    writer => '_previous_year',
 );
 
 # has 'start_date' => (
@@ -131,13 +140,30 @@ has 'previous_year' => (
 has 'selected_date' => (
     is  => 'ro',
     isa => 'DateTime',
+    writer => '_selected_date',
 );
 
 has 'first_entry_day' => (
     is  => 'ro',
     isa => 'DateTime',
     init_arg => undef,
+    writer => '_first_entry_day',
 );
+
+has 'days_of_week'  => (
+    is  => 'ro',
+    isa => 'ArrayRef',
+    init_arg => undef,
+    writer => '_days_of_week',
+);
+
+has 'months_of_year'  => (
+    is  => 'ro',
+    isa => 'ArrayRef',
+    init_arg => undef,
+    writer => '_months_of_year',
+);
+
 
 =head1 METHODS
 
@@ -172,11 +198,11 @@ sub BUILD {
         $dd = 1 unless ($selected_date->month == $self->month and $selected_date->year == $self->year );
     } else {
         $selected_date ||= DateTime->now();
-        $self->{month} = $selected_date->month;
-        $self->{year} = $selected_date->year;
+        $self->_month($selected_date->month);
+        $self->_year($selected_date->year);
         $dd = $selected_date->day;
     }
-    $self->{selected_date} = $selected_date unless ($self->selected_date);
+    $self->_selected_date($selected_date) unless ($self->selected_date);
 
     # get first entry
     my $first_month_day = $selected_date->clone;
@@ -187,13 +213,13 @@ sub BUILD {
     unless ($first_month_day->wday == 7) {
         $first_entry_day->subtract(days => $first_month_day->wday);
     }
-    $self->{first_entry_day} = $first_entry_day;
+    $self->_first_entry_day($first_entry_day);
 
     # get next/prev month and year
     $self->{previous_month} = ($self->month == 1) ? 12 : $self->month - 1;
     $self->{next_month} = ($self->month == 12) ? 1 : $self->month + 1;
-    $self->{previous_year} = ($self->{previous_month} == 12) ? $self->year - 1 : $self->year;
-    $self->{next_year} = ($self->{next_month} == 1)? $self->year + 1 : $self->year;
+    $self->{previous_year} = ($self->previous_month == 12) ? $self->year - 1 : $self->year;
+    $self->{next_year} = ($self->next_month == 1)? $self->year + 1 : $self->year;
 
     $self->_translate_days_months;
 
@@ -225,8 +251,8 @@ sub weeks {
             my $dow = 1;
             push (
                 @{$self->{rows}},
-                [ map { Calendar::Model::Day->new({ dmy => $_, dow_name => $self->{_days_of_week}[$dow], day_of_week => $dow++, }) }
-                calendar_list('DD-MM-YYYY',{start => $self->{first_entry_day}->dmy, "options" => 7} ) ]
+                [ map { Calendar::Model::Day->new({ dmy => $_, dow_name => $self->days_of_week->[$dow], day_of_week => $dow++, }) }
+                calendar_list('DD-MM-YYYY',{start => $self->first_entry_day->dmy, "options" => 7} ) ]
             );
         }
     }
@@ -250,14 +276,14 @@ sub month_name {
     my $monthname;
     if ($delta) {
         if ($delta eq 'next') {
-            $monthname = $self->{_months_of_year}[$self->next_month];
+            $monthname = $self->months_of_year()->[$self->next_month];
         } elsif ($delta eq 'previous') {
-            $monthname = $self->{_months_of_year}[$self->previous_month];
+            $monthname = $self->months_of_year()->[$self->previous_month];
         } else {
             die 'unrecognised month delta - needs to be undef, next or previous';
         }
     } else {
-        $monthname = $self->{_months_of_year}[$self->month];
+        $monthname = $self->months_of_year()->[$self->month];
     }
     return $monthname;
 }
@@ -272,11 +298,11 @@ sub _translate_days_months {
 
     # set local from obj language
     POSIX::setlocale( &POSIX::LC_ALL,$self->{LANG});
-    $self->{_days_of_week} = [ undef, map { langinfo($_) } (DAY_1, DAY_2, DAY_3, DAY_4, DAY_5, DAY_6, DAY_7) ];
-    $self->{_months_of_year} = [ undef, map { langinfo($_) } (MON_1, MON_2, MON_3, MON_4, MON_5, MON_6,
-                                                              MON_7, MON_8, MON_9, MON_10, MON_11, MON_12) ];
+    $self->_days_of_week([ undef, map { langinfo($_) } (DAY_1, DAY_2, DAY_3, DAY_4, DAY_5, DAY_6, DAY_7) ]);
+    $self->_months_of_year([ undef, map { langinfo($_) } (MON_1, MON_2, MON_3, MON_4, MON_5, MON_6,
+                                                          MON_7, MON_8, MON_9, MON_10, MON_11, MON_12) ]);
 
-    $self->{columns} = [ @{$self->{_days_of_week}}[1,2,3,4,5,6,7] ];
+    $self->_columns([@{$self->days_of_week}[1,2,3,4,5,6,7]]);
 
     # restore the old locale
     setlocale(LC_CTYPE, $old_locale);
