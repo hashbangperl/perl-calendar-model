@@ -340,6 +340,12 @@ sub month_name {
     return $monthname;
 }
 
+=head2 last_entry_day
+
+Get last day in calendar as a DateTime object
+
+=cut
+
 sub last_entry_day {
     my $self = shift;
 
