@@ -41,6 +41,8 @@ our $VERSION = '0.01';
 
     my $next_month_name = $cal->month_name('next'); # April
 
+    my $events = $schema->resultset('events')->search( date => { between => [$cal->start_date->dmy,$cal->last_entry_day->dmy] });
+
 =head1 DESCRIPTION
 
 A simple Model layer providing Classes representing A Calendar containing rows and days
@@ -67,6 +69,30 @@ use namespace::autoclean;
 =head1 ATTRIBUTES
 
 =over 4
+
+=item columns
+
+=item rows
+
+=item month
+
+=item LANG
+
+=item next_month
+
+=item previous_month
+
+=item year
+
+=item next_year
+
+=item previous_year
+
+=item seleted_date
+
+=item days_of_week
+
+=item months_of_year
 
 =back
 
@@ -149,6 +175,14 @@ has 'first_entry_day' => (
     init_arg => undef,
     writer => '_first_entry_day',
 );
+
+has '_last_entry_day' => (
+    is  => 'ro',
+    isa => 'DateTime',
+    init_arg => undef,
+    writer => '_set_last_entry_day',
+);
+
 
 has 'days_of_week'  => (
     is  => 'ro',
@@ -247,17 +281,35 @@ sub weeks {
 #             push if ( $plugin->can( 'init' ));
 #         }
 
-        foreach (1..5) {
-            my $dow = 1;
+        my $dow = 1;
+        $self->{rows} = [[
+            map { Calendar::Model::Day->new({ dmy => $_, dow_name => $self->days_of_week->[$dow], day_of_week => $dow++, }) }
+            calendar_list('DD-MM-YYYY',{start => $self->first_entry_day->dmy, "options" => 7})
+        ]];
+        foreach (1..4) {
+            $dow = 1;
+            my $last_day = $self->{rows}->[-1][-1];
+            my (undef,@days) = calendar_list('DD-MM-YYYY',{start => $last_day->dmy, "options" => 8} );
             push (
                 @{$self->{rows}},
-                [ map { Calendar::Model::Day->new({ dmy => $_, dow_name => $self->days_of_week->[$dow], day_of_week => $dow++, }) }
-                calendar_list('DD-MM-YYYY',{start => $self->first_entry_day->dmy, "options" => 7} ) ]
+                [ map { Calendar::Model::Day->new({ dmy => $_, dow_name => $self->days_of_week->[$dow],
+                                                    day_of_week => $dow++, }) } @days ]
             );
         }
     }
     # natatime is iterator accessor for ArrayRef accessor in moose - built in, would be nice to wrap it
     return $self->rows;
+}
+
+=head2 as_list
+
+Object method returns all Calendar::Model::Day objects for calendar
+
+=cut
+
+sub as_list {
+    my $self = shift;
+    return [ map { @$_ } @{$self->weeks} ];
 }
 
 =head2 month_name
@@ -286,6 +338,16 @@ sub month_name {
         $monthname = $self->months_of_year()->[$self->month];
     }
     return $monthname;
+}
+
+sub last_entry_day {
+    my $self = shift;
+
+    my $last_day = $self->weeks->[-1][-1];
+
+    $self->_set_last_entry_day($last_day->to_DateTime);
+
+    return $self->_last_entry_day;
 }
 
 ###

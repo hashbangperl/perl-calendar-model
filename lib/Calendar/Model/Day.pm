@@ -9,24 +9,23 @@ Calendar::Model::Day - Simple class modelling Calendar day
 
 use Data::Dumper;
 
+use DateTime;
+
 use Moose;
 
 =head1 SYNOPSIS
 
-=head1 METHODS
+my $cal = Calendar::Model->new(selected_date=>DateTime->new(day=>3, month=>1, year=>2013));
 
-=head2 new
+my $day2 = $cal->weeks->[0][2];
 
-Class constructor method, returns a Calendar::Model::Day object based on the arguments :
+$day2->dow_name; # 'Tuesday'
 
-=over 4
+$day2->day_of_week; # 3
 
-=item dmy - required a date in DD-MM-YYYY format
+$day2->dd; # '01'
 
-=item day_of_week - required day of week (1 to 7)
-
-=back
-
+$day2->yyyy; # '2013'
 
 =head1 ATTRIBUTES
 
@@ -91,6 +90,20 @@ has 'is_selected_month' => (
     isa => 'Bool',
 );
 
+=head1 METHODS
+
+=head2 new
+
+Class constructor method, returns a Calendar::Model::Day object based on the arguments :
+
+=over 4
+
+=item dmy - required a date in DD-MM-YYYY format
+
+=item day_of_week - required day of week (1 to 7)
+
+=back
+
 =head2 BUILD
 
 Std Moose initialisation hook called by constructor method
@@ -109,7 +122,17 @@ sub BUILD {
     # do working day check
 
     # work out ordinal value/format
+}
 
+=head2 to_DateTime
+
+Object method, returns a DateTime object built from the days attributes
+
+=cut
+
+sub to_DateTime {
+    my $self = shift;
+    return DateTime->new(year => $self->yyyy, month => $self->mm, day => $self->dd);
 }
 
 =head1 LICENSE AND COPYRIGHT
