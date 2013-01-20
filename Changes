@@ -1,4 +1,7 @@
 Revision history for Calendar-Model
+0.02    20/01/2013
+	Fixed schoolboy error in working out weeks/rows
+	Added methods for last day in calendar and day as DateTime
 
 0.01    18/01/2013
         First version, released on an unsuspecting world.
