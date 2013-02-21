@@ -9,3 +9,14 @@ t/01-build.t
 t/manifest.t
 t/pod-coverage.t
 t/pod.t
+examples/calendar.pl
+examples/templates/calendar.tt
+examples/templates/includes/footer.tt
+examples/templates/includes/header.tt
+examples/js/bootstrap.js
+examples/js/bootstrap.min.js
+examples/css/bootstrap.css 
+examples/css/bootstrap.min.css
+examples/css/bootstrap-responsive.css
+examples/css/bootstrap-responsive.min.css
+examples/css/calendar.css
