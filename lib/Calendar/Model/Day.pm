@@ -27,6 +27,8 @@ $day2->dd; # '01'
 
 $day2->yyyy; # '2013'
 
+$day->to_DateTime; # DateTime object
+
 =head1 ATTRIBUTES
 
 =over 4
