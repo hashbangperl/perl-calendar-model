@@ -7,11 +7,11 @@ Calendar::Model - Simple class modelling Calendars
 
 =head1 VERSION
 
-Version 0.02
+Version 0.03
 
 =cut
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 =head1 SYNOPSIS
 
@@ -41,7 +41,10 @@ our $VERSION = '0.02';
 
     my $next_month_name = $cal->month_name('next'); # April
 
+    my $day = $cal->get_day($dt);
+
     my $events = $schema->resultset('events')->search( date => { between => [$cal->start_date->dmy,$cal->last_entry_day->dmy] });
+
 
 =head1 DESCRIPTION
 
@@ -354,6 +357,23 @@ sub last_entry_day {
     $self->_set_last_entry_day($last_day->to_DateTime);
 
     return $self->_last_entry_day;
+}
+
+=head2 get_day
+
+Get given day from Calendar, takes a DateTime object, returns a Calendar::Modal::Day object
+
+=cut
+
+sub get_day {
+    my ($self, $match) = @_;
+
+    # get delta to start date in days
+    my $delta = $self->first_entry_day->delta_days( $match );
+    my ($w, $d) = $delta->in_units( 'weeks', 'days' );
+    # get delta-nth day from appropriate list
+
+    my $last_day = $self->weeks->[$w][$d];
 }
 
 ###
