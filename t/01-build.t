@@ -336,5 +336,7 @@ is_deeply([
                  }, 'Calendar::Model::Day' )
         ], $cal->as_list);
 
-done_testing();
+my $dt = DateTime->new(day=>31, month=>1, year=>2013);
+is($dt, $cal->get_day($dt)->to_DateTime, 'get day from date');
 
+done_testing();
