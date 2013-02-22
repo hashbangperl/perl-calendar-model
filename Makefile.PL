@@ -21,6 +21,7 @@ WriteMakefile(
 	'MooseX::Role::Pluggable' => 0.02,
 	'Calendar::List' => 0.26,
 	'Date::Holidays' => 0.15,
+	'I18N::Langinfo' => 0,
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'Calendar-Model-*' },
