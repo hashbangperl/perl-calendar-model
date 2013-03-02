@@ -42,7 +42,7 @@
         <div class="month_header row-fluid calendar_header">
           <div class="span3">&nbsp;</div>
           [% FOREACH column IN cal.columns() %]
-          <div class="span1">[% column.ucfirst %]</div>
+          <div class="span1">[% column %]</div>
           [% END %]
           <div class="span2">&nbsp;</div>
         </div>
