@@ -13,6 +13,9 @@ examples/calendar.pl
 examples/templates/calendar.tt
 examples/templates/includes/footer.tt
 examples/templates/includes/header.tt
+examples/templates/sidebar_calendar.tt
+examples/calendar2.pl
+
 examples/js/bootstrap.js
 examples/js/bootstrap.min.js
 examples/css/bootstrap.css 
