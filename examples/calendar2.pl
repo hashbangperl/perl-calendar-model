@@ -13,6 +13,7 @@ my $events = {
     '2012-12-19' => 'Anniversary of Penlee Lifeboat Disaster',
 };
 
+my $template = Template->new({ INCLUDE_PATH => 'templates', POST_CHOMP=> 1,});
 # process sidebar template
-my $template->process('sidebar_calendar.tt', {cal => $cal, events => $events })
+$template->process('sidebar_calendar.tt', {cal => $cal, events => $events })
 || die $template->error();
